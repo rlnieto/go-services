@@ -16,7 +16,8 @@
     <div class="row">
       <div class="col-12-lg">
         <h1>API Interface</h1>
-        <div class="alert alert-warning" id="api-messages" role="alert"></div>
+        <div id="api-messages"></div>
+        <!--div class="alert alert-warning" id="api-messages" role="alert">Mensajes del servidor</div-->
         <ul class="nav nav-tabs" role="tablist">
           <li class="active"><a href="#create" role="tab" datatoggle="tab">Create User</a></li>
         </ul>
@@ -43,7 +44,13 @@
               <input type="text" class="form-control" id="createLast" placeholder="Last Name">
             </div>
 
+            <div class="form-group">
+              <label for="createPassword">Password</label>
+              <input type="text" class="form-control" id="createPassword" placeholder="Password">
+            </div>
+
             <button type="submit" onclick="userCreate();" class="btn btnsuccess">Create</button>
+
             </div>
           </div>
         </div>
@@ -58,14 +65,28 @@
         postData.name = $('#createUsername').val();
         postData.first = $('#createFirst').val();
         postData.last = $('#createLast').val();
+        postData.password = $('#createPassword').val();
 
-        $.post(action,postData,function(data) {
-          alert(data)
-          if (data.error) {
-            $('.alert').html(data.error);
-            $('.alert').alert();
+        var formData = new FormData($('form')[0])
+        $.ajax({
+          url: action,    // server script to process data
+          data: postData,
+          dataType: 'json',
+          type: 'POST',
+          statusCode: {
+            409: function(){
+              $('#api-messages').html('El nombre o la dirección de correo ya existen');
+              $('#api-messages').removeClass('alert-success').addClass('alert-warning');
+              $('#api-messages').show();
+            },
+            200: function(){
+              $('#api-messages').html('Usuario creado correctamente');
+              $('#api-messages').removeClass('alert-warning').addClass('alert-success');
+              $('#api-messages').show();
+            }
           }
-        },'json');
+        })
+
       }
 
       $(document).ready(function() {
