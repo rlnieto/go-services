@@ -1,21 +1,21 @@
 package api
 
 import(
-  _ "github.com/go-sql-driver/mysql"
   "net/http"
   "fmt"
   "strings"
+  "strconv"
   "log"
-  Error "rlnieto.org/go-services/error"
+  Error "rlnieto.org/eventos/go-services/error"
+  Persistencia "rlnieto.org/eventos/go-services/persistencia"
 )
 
 
 /*------------------------------------------------------------------------------
- Alta de usuarios en la cena
- OJO: espera la lista de TODOS los usuarios y BORRA los que ya hay!!
+ Alta de usuarios en un evento
 
 ------------------------------------------------------------------------------*/
-func AltaUsuariosCena(w http.ResponseWriter, r *http.Request){
+func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
   var error = Error.ErrorMsg{}
 
@@ -24,20 +24,20 @@ func AltaUsuariosCena(w http.ResponseWriter, r *http.Request){
   var statusCode int
 
   idUsuarios := strings.Split(r.FormValue("idusuario"), ",")
-  idCena := r.FormValue("idcena")
+  idEvento := r.FormValue("idevento")
   confirmado := r.FormValue("confirmado")
 
   // Validaciones
   // Campos obligatorios: fecha, hora, id organizador
   if r.FormValue("idusuario") == ""{
-    error.ErrorCode = Error.GENERIC_ERROR
+    error.ErrorCode = Error.PARAMETRO_INCORRECTO
     error.Msg = "Faltan los ids de los usuarios"
     statusCode, response = error.Dispatch()
   }
 
-  if idCena == ""{
-    error.ErrorCode = Error.GENERIC_ERROR
-    error.Msg = "Falta el id de la cena"
+  if idEvento == ""{
+    error.ErrorCode = Error.PARAMETRO_INCORRECTO
+    error.Msg = "Falta el id de la evento"
     statusCode, response = error.Dispatch()
   }
 
@@ -52,78 +52,41 @@ func AltaUsuariosCena(w http.ResponseWriter, r *http.Request){
     confirmado = "N"
   }
 
-  // Iniciamos la transacción
-  tx, dbError := Database.Begin()
-  if dbError != nil{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = dbError.Error()
+  // Comprobamos que exista el evento
+  var evento Persistencia.Evento
+  idEventoInt, _ := strconv.ParseInt(idEvento, 10, 32)
+  evento.Id = idEventoInt
+
+  dbError := evento.ById()
+  if dbError != ""{
+    error.ErrorCode = Error.NOT_FOUND
+    error.Msg = "No se encontró el evento con id " + idEvento
     statusCode, response = error.Dispatch()
     http.Error(w, http.StatusText(int(statusCode)), statusCode)
   }
 
-  // Borramos los usuarios que ya hay asociados
-  sql := "DELETE FROM usuarios_cena where idcena=?"
+  // Damos de alta los usuarios
+  if dbError == ""{
+    var usuario Persistencia.UsuarioEvento
 
-  query, dbError := Database.Prepare(sql)
-  if dbError != nil{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = dbError.Error()
-    statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-  }
-
-  _, dbError = tx.Stmt(query).Exec(idCena)
-  if dbError != nil{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = dbError.Error()
-    statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-
-    tx.Rollback()
-    fmt.Fprintf(w, response)
-    return
-  }
-
-  // Damos de alta los usuarios enviados
-  sql = "INSERT INTO usuarios_cena set idusuario=?" +
-  ", idcena=" + idCena + ", confirmado='" + confirmado + "'"
-
-  queryAlta, dbError := Database.Prepare(sql)
-  if dbError != nil{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = dbError.Error()
-    statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-  }
-
-  // Insertamoss las filas en la tabla
-  for _, idUsuario := range(idUsuarios){
-    res, dbError := tx.Stmt(queryAlta).Exec(idUsuario)
-    fmt.Println(res)
-
-    // Si hubo error hacemos rollback
-    if dbError != nil{
+    dbError = usuario.AltaEnEvento(idEventoInt, idUsuarios)
+    if dbError != ""{
       error.ErrorCode = Error.DB_ERROR
-      error.Msg = dbError.Error()
+      error.Msg = dbError
       statusCode, response = error.Dispatch()
       http.Error(w, http.StatusText(int(statusCode)), statusCode)
-
-      tx.Rollback()
-      break
     }
   }
-  if error.ErrorCode == 0{
-    tx.Commit()
-  }
+
   fmt.Fprintf(w, response)
 }
 
 
 /*------------------------------------------------------------------------------
- Baja de los usuarios asociados a la cena
+ Baja de los usuarios asociados al evento
 
 ------------------------------------------------------------------------------*/
-func BajaUsuariosCena(w http.ResponseWriter, r *http.Request){
+func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
   var error = Error.ErrorMsg{}
@@ -132,18 +95,18 @@ func BajaUsuariosCena(w http.ResponseWriter, r *http.Request){
   response := error.OkResponse()
   var statusCode int
 
-  idCena := r.FormValue("idcena")
+  idEvento := r.FormValue("idevento")
   idUsuarios := r.FormValue("idusuario")
 
   // Validaciones
-  if idCena == ""{
-    error.ErrorCode = Error.GENERIC_ERROR
+  if idEvento == ""{
+    error.ErrorCode = Error.PARAMETRO_INCORRECTO
     error.Msg = "Falta el id"
     statusCode, response = error.Dispatch()
   }
 
   if idUsuarios == ""{
-    error.ErrorCode = Error.GENERIC_ERROR
+    error.ErrorCode = Error.PARAMETRO_INCORRECTO
     error.Msg = "Faltan los ids de los usuarios"
     statusCode, response = error.Dispatch()
   }
@@ -154,18 +117,37 @@ func BajaUsuariosCena(w http.ResponseWriter, r *http.Request){
     return
   }
 
+  // Comprobamos que haya usuarios para el evento
+  var usuario Persistencia.UsuarioEvento
+  idEventoInt, _ := strconv.ParseInt(idEvento, 10, 32)
 
-  // Borramos los asistentes que nos han enviado
-  sql := "DELETE FROM usuarios_cena WHERE idcena = " + idCena  +
-    " and idusuario in(" + idUsuarios + ")"
-
-  log.Println(sql)
-
-  _, dbError := Database.Exec(sql)
-
-  if dbError != nil{
+  numUsuarios, dbError := usuario.NumeroUsuariosEvento(idEventoInt)
+  if dbError != ""{
     error.ErrorCode = Error.DB_ERROR
-    error.Msg = dbError.Error()
+    error.Msg = dbError
+    statusCode, response = error.Dispatch()
+    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    fmt.Fprintf(w, response)
+    return
+  }
+
+  log.Println(numUsuarios)
+
+  if numUsuarios == 0{
+    error.ErrorCode = Error.NOT_FOUND
+    error.Msg = "No hay usuarios para el evento con id " + idEvento
+    statusCode, response = error.Dispatch()
+    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    fmt.Fprintf(w, response)
+    return
+  }
+
+  // Hacemos la baja
+  dbError = usuario.BajaEnEvento(idEventoInt, idUsuarios)
+
+  if dbError != ""{
+    error.ErrorCode = Error.DB_ERROR
+    error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, http.StatusText(int(statusCode)), statusCode)
   }

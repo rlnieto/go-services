@@ -26,12 +26,12 @@ type CreateResponse struct {
 func (api *ApiServer) Start(){
 
   routes := mux.NewRouter()
-  routes.HandleFunc("/api/cenas", ConsultarCena).Methods("GET")
-  routes.HandleFunc("/api/cenas", AltaCena).Methods("POST")
-  routes.HandleFunc("/api/cenas", ModificarCena).Methods("PUT")
-  routes.HandleFunc("/api/cenas", BorrarCena).Methods("DELETE")
-  routes.HandleFunc("/api/usuarioscena", AltaUsuariosCena).Methods("POST")
-  routes.HandleFunc("/api/usuarioscena", BajaUsuariosCena).Methods("DELETE")
+  routes.HandleFunc("/api/eventos", ConsultarEvento).Methods("GET")
+  routes.HandleFunc("/api/eventos", AltaEvento).Methods("POST")
+  routes.HandleFunc("/api/eventos", ModificarEvento).Methods("PUT")
+  routes.HandleFunc("/api/eventos", BorrarEvento).Methods("DELETE")
+  routes.HandleFunc("/api/usuariosevento", AltaUsuariosEvento).Methods("POST")
+  routes.HandleFunc("/api/usuariosevento", BajaUsuariosEvento).Methods("DELETE")
 
   fmt.Println("Listening on port 8080...")
 /*

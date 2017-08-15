@@ -5,12 +5,14 @@ import(
   "strings"
   "strconv"
   "log"
+  //Config "rlnieto.org/eventos/go-services/config"
 )
 
 // Constantes
 const GENERIC_ERROR = 1      // ErrorCode => error genérico
 const DB_ERROR = 2           // ErrorCode => error de BD
-
+const NOT_FOUND = 3
+const PARAMETRO_INCORRECTO = 4
 
 // Respresenta un error:
 //   - ErrorCode => código específico dentro de la aplicación
@@ -22,7 +24,7 @@ type ErrorMsg struct{
     Msg string
 }
 
-// Datos que devolveremos al cliente
+// Datos que devolveremos al cliente en caso de error
 type Response struct {
   Error string "json:error"
   ErrorCode int64 "json:code"
@@ -45,15 +47,33 @@ func (error *ErrorMsg) OkResponse() (string){
 ------------------------------------------------------------------------------*/
 //------------------------------------------------------------------------------
 // Separa en código y mensaje los errores de BD
+// TODO: hay que darle una vuelta porque es un lío... Hay que ver también
+// cómo montamos la gestión de errores para postgres
+// Para MySql buscamos errores con el siguiente formato:
+//   "Error 1062: Duplicate entry '1-15' for key 1"
 //------------------------------------------------------------------------------
 func dbErrorParse(err string) (string, int64){
-  Parts := strings.Split(err, ":")
-  errorMessage := Parts[1]
-  Code := strings.Split(Parts[0], " ")
-  errorCode, _ := strconv.ParseInt(Code[1], 10, 32)
+
+  log.Println(err)
+
+  var errorMessage string
+  var errorCode int64
+
+  // Si no aparece la palabra "Error" no buscamos el código numérico
+  if strings.Contains(err, "Error"){
+    Parts := strings.Split(err, ":")
+    Code := strings.Split(Parts[0], " ")
+
+    errorMessage = Parts[1]
+    errorCode, _ = strconv.ParseInt(Code[1], 10, 32)
+  }else{
+    errorMessage = err
+    errorCode = -1
+  }
 
   return errorMessage, errorCode
 }
+
 
 //------------------------------------------------------------------------------
 // Devuelve la estructura de error en formato json
@@ -63,8 +83,6 @@ func (error *ErrorMsg) Dispatch() (int, string){
   // Si es un error de bd extraemos el código de mysql para decidir el status code
   if error.ErrorCode == DB_ERROR{
     error.Msg, error.ErrorCode = dbErrorParse(error.Msg)
-    log.Println(error.Msg)
-    log.Println(error.ErrorCode)
   }
 
   var errorMessage string
@@ -76,11 +94,14 @@ func (error *ErrorMsg) Dispatch() (int, string){
       errorMessage = error.Msg
       errorCode = error.ErrorCode
       statusCode = 409
-    // Puerto en uso => salta cuando el mysql no está disponible
-    case 3306:
-      errorMessage = "Database not available"
+    case NOT_FOUND:
+      errorMessage = error.Msg
       errorCode = error.ErrorCode
       statusCode = 404
+    case PARAMETRO_INCORRECTO:
+      errorMessage = error.Msg
+      errorCode = error.ErrorCode
+      statusCode = 412
     case 1062:
       errorMessage = "Duplicate entry"
       errorCode = error.ErrorCode

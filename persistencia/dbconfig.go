@@ -3,9 +3,8 @@ package persistencia
 import(
   "database/sql"
   _ "github.com/go-sql-driver/mysql"
+  Config "rlnieto.org/eventos/go-services/config"
 )
-
-const DB_SCHEMA = "cenas"
 
 type Database struct{
   Schema string
@@ -19,13 +18,13 @@ var Db Database
 //
 //-----------------------------------------------------------------------------
 func (Db *Database) Open(){
-  db, err := sql.Open("mysql", "root@/" + DB_SCHEMA)
+  db, err := sql.Open("mysql", "root@/" + Config.DB_SCHEMA)
   if err != nil {
     //fmt.Println("Error conectando con la bd")
     panic("Imposible conectar con la BD")
   }
 
-  Db.Schema = DB_SCHEMA
+  Db.Schema = Config.DB_SCHEMA
   Db.Conn = db
 
 }
