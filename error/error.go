@@ -5,7 +5,6 @@ import(
   "strings"
   "strconv"
   "log"
-  //Config "rlnieto.org/eventos/go-services/config"
 )
 
 // Constantes
