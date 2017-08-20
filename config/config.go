@@ -1,4 +1,4 @@
 package config
 
-const DBRM_NAME = "mysql"
-const DB_SCHEMA = "cenas"
+const DBRM_NAME = "postgres"
+const DB_SCHEMA = "eventos"

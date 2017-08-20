@@ -5,6 +5,7 @@ import(
   "strings"
   "strconv"
   "log"
+  //Config "rlnieto.org/go-services/config"
 )
 
 // Constantes
@@ -80,9 +81,9 @@ func dbErrorParse(err string) (string, int64){
 func (error *ErrorMsg) Dispatch() (int, string){
 
   // Si es un error de bd extraemos el código de mysql para decidir el status code
-  if error.ErrorCode == DB_ERROR{
+  /*if error.ErrorCode == DB_ERROR{
     error.Msg, error.ErrorCode = dbErrorParse(error.Msg)
-  }
+  }*/ 
 
   var errorMessage string
   var statusCode int

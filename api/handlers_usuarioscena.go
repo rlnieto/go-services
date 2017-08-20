@@ -6,8 +6,8 @@ import(
   "strings"
   "strconv"
   "log"
-  Error "rlnieto.org/eventos/go-services/error"
-  Persistencia "rlnieto.org/eventos/go-services/persistencia"
+  Error "rlnieto.org/go-services/error"
+  Persistencia "rlnieto.org/go-services/persistencia"
 )
 
 

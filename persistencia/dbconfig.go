@@ -1,14 +1,13 @@
 package persistencia
 
 import(
-  "database/sql"
-  _ "github.com/go-sql-driver/mysql"
-  Config "rlnieto.org/eventos/go-services/config"
+  "github.com/go-pg/pg"
+  Config "rlnieto.org/pruebas/postgres/config"
 )
 
 type Database struct{
   Schema string
-  Conn *sql.DB
+  Conn *pg.DB
 }
 
 var Db Database
@@ -17,12 +16,13 @@ var Db Database
 // Apertura de la conexión con la BD
 //
 //-----------------------------------------------------------------------------
-func (Db *Database) Open(){
-  db, err := sql.Open("mysql", "root@/" + Config.DB_SCHEMA)
-  if err != nil {
-    //fmt.Println("Error conectando con la bd")
-    panic("Imposible conectar con la BD")
-  }
+func (Db *Database) Open() {
+
+  db := pg.Connect(&pg.Options{
+    User: "guest",
+    Password: "guest",
+    Database: "eventos",
+  })
 
   Db.Schema = Config.DB_SCHEMA
   Db.Conn = db

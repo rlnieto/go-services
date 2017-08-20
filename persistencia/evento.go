@@ -1,9 +1,10 @@
 package persistencia
 
 import(
+  "fmt"
   "strconv"
+  "github.com/go-pg/pg"
 )
-
 type Evento struct{
   Id int64
   Fecha string
@@ -14,6 +15,7 @@ type Evento struct{
   PrecioEstimado int
   IdOrganizador int64
 }
+
 
 //-----------------------------------------------------------------------------
 // Baja
@@ -34,29 +36,37 @@ func (evento *Evento) Borrar() (string){
     return mensajeError
   }
 
-  // Borramos los asistentes
-  sql := "DELETE FROM usuarios_evento WHERE idevento = ?"
+  // Borramos el evento
+  sql := "DELETE FROM eventos WHERE id = $1::integer"
 
   queryBaja, dbError := conexion.Prepare(sql)
   if dbError != nil{
     mensajeError = dbError.Error()
+    tx.Rollback()
     return mensajeError
   }
 
-  _, dbError = tx.Stmt(queryBaja).Exec(evento.Id)
+  res, dbError := tx.Stmt(queryBaja).Exec(evento.Id)
   if dbError != nil{
     mensajeError = dbError.Error()
     tx.Rollback()
     return mensajeError
   }
 
-  // Borramos el evento
-  sql = "DELETE FROM evento WHERE id = ?"
+  // Si no existía el evento salimos con error
+  if res.RowsAffected() == 0{
+    tx.Rollback()
+    return "No se encontraron datos para el evento " + strconv.FormatInt(evento.Id, 10)
+  }
+
+
+
+  // Borramos los asistentes
+  sql = "DELETE FROM usuario_eventos WHERE id_evento = $1::integer"
 
   queryBaja, dbError = conexion.Prepare(sql)
   if dbError != nil{
     mensajeError = dbError.Error()
-    tx.Rollback()
     return mensajeError
   }
 
@@ -73,8 +83,6 @@ func (evento *Evento) Borrar() (string){
 }
 
 
-
-
 //-----------------------------------------------------------------------------
 // Actualización
 //
@@ -85,20 +93,13 @@ func (evento *Evento) Actualizar() (string){
   Db.Open()
   defer Db.Close()
 
-  statement, dbError := Db.Conn.Prepare("UPDATE evento SET fecha=?, hora=?, idlocal=?, motivo=?, menu=?, precio_estimado=?, idorganizador=? WHERE id=?")
+  dbError := Db.Conn.Update(evento)
 	if dbError != nil {
-    mensajeError = dbError.Error()
-    return mensajeError
-  }
-
-  result, dbError := statement.Exec(evento.Fecha,evento.Hora,evento.IdLocal,evento.Motivo,evento.Menu,evento.PrecioEstimado,evento.IdOrganizador,evento.Id)
-  if dbError != nil {
-    mensajeError = dbError.Error()
-    return mensajeError
-  }
-  filas, _ := result.RowsAffected()
-  if filas == 0{
-    return "No se encontraron filas"
+    if dbError == pg.ErrNoRows{
+      mensajeError = "No hay datos para el evento " + strconv.FormatInt(evento.Id, 10)
+    }else{
+      mensajeError = dbError.Error()
+    }
   }
 
   return mensajeError
@@ -115,21 +116,14 @@ func (evento *Evento) Alta() (string){
   Db.Open()
   defer Db.Close()
 
-  statement, dbError := Db.Conn.Prepare("INSERT INTO evento VALUES( ?, ?, ?, ?, ?, ?, ?, ? )")
+  dbError := Db.Conn.Insert(evento)
 	if dbError != nil {
-    mensajeError = dbError.Error()
-    return mensajeError
-  }
-
-  _, dbError = statement.Exec(0,evento.Fecha,evento.Hora,evento.IdLocal,evento.Motivo,evento.Menu,evento.PrecioEstimado,evento.IdOrganizador)
-  if dbError != nil {
     mensajeError = dbError.Error()
     return mensajeError
   }
 
   return mensajeError
 }
-
 
 
 //-----------------------------------------------------------------------------
@@ -142,12 +136,16 @@ func (evento *Evento) ById() (string){
   Db.Open()
   defer Db.Close()
 
-  query := "SELECT * FROM evento WHERE id=" + strconv.Itoa(int(evento.Id))
-  dbError := Db.Conn.QueryRow(query).Scan(&evento.Id,&evento.Fecha,&evento.Hora,&evento.IdLocal,&evento.Motivo,&evento.Menu,&evento.PrecioEstimado,&evento.IdOrganizador)
+  query := "SELECT * FROM eventos WHERE id=" + strconv.Itoa(int(evento.Id))
+  fmt.Println(query)
+  _, dbError := Db.Conn.QueryOne(evento, query)
 
-  // Cuando no encuentra filas devuelve el mensaje de error: "sql: no rows in result set"
   if dbError != nil{
-    mensajeError = dbError.Error()
+    if dbError == pg.ErrNoRows{
+      mensajeError = "No hay datos para el evento " + strconv.FormatInt(evento.Id, 10)
+    }else{
+      mensajeError = dbError.Error()
+    }
   }
 
   return mensajeError

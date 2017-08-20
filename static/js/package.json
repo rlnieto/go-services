@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "angular": "^1.6.5",
+    "angular-animate": "^1.6.5",
+    "angular-i18n": "^1.6.5"
+  }
+}

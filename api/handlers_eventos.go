@@ -5,8 +5,8 @@ import(
   "fmt"
   "strconv"
   "encoding/json"
-  Error "rlnieto.org/eventos/go-services/error"
-  Persistencia "rlnieto.org/eventos/go-services/persistencia"
+  Error "rlnieto.org/go-services/error"
+  Persistencia "rlnieto.org/go-services/persistencia"
 )
 
 
@@ -291,4 +291,5 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
 
   output, _ := json.Marshal(salida)
   fmt.Fprintf(w, string(output))
+  fmt.Fprintf(w, response)
 }
