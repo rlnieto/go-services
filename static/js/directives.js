@@ -1,4 +1,4 @@
-parking.directive("alert", function(){
+eventos.directive("alert", function(){
   return{
     restrict: 'E',   // A - atributo, E - elemento, C - clase, M - comentario
     scope:{
@@ -12,7 +12,7 @@ parking.directive("alert", function(){
   };
 });
 
-parking.directive("accordionItem", function(){
+eventos.directive("accordionItem", function(){
   return{
     templateUrl: "accordionItem.html",
     restrict: 'E',
@@ -33,7 +33,7 @@ parking.directive("accordionItem", function(){
   };
 });
 
-parking.directive("accordion", function(){
+eventos.directive("accordion", function(){
   return{
     template: '<div ng-transclude></div>',
     restrict: "E",

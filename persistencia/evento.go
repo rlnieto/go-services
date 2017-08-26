@@ -5,15 +5,16 @@ import(
   "strconv"
   "github.com/go-pg/pg"
 )
+
 type Evento struct{
   Id int64
   Fecha string
   Hora string
-  IdLocal int64
+  IdLocal int64  `sql:",notnull"`
   Motivo  string
   Menu  string
-  PrecioEstimado int
-  IdOrganizador int64
+  PrecioEstimado int  `sql:",notnull"`
+  IdOrganizador int64  `sql:",notnull"`
 }
 
 
@@ -56,9 +57,8 @@ func (evento *Evento) Borrar() (string){
   // Si no existía el evento salimos con error
   if res.RowsAffected() == 0{
     tx.Rollback()
-    return "No se encontraron datos para el evento " + strconv.FormatInt(evento.Id, 10)
+    return NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
   }
-
 
 
   // Borramos los asistentes
@@ -96,7 +96,7 @@ func (evento *Evento) Actualizar() (string){
   dbError := Db.Conn.Update(evento)
 	if dbError != nil {
     if dbError == pg.ErrNoRows{
-      mensajeError = "No hay datos para el evento " + strconv.FormatInt(evento.Id, 10)
+      mensajeError = NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
     }else{
       mensajeError = dbError.Error()
     }
@@ -116,7 +116,36 @@ func (evento *Evento) Alta() (string){
   Db.Open()
   defer Db.Close()
 
-  dbError := Db.Conn.Insert(evento)
+  // Comprobamos si existe el local. Un 0 siginifica que no lo hay
+  if evento.IdLocal  > 0{
+    var local Restaurante
+    local.Id = evento.IdLocal
+
+    dbError := Db.Conn.Select(&local)
+    if dbError != nil{
+      if dbError == pg.ErrNoRows{
+        return NO_HAY_DATOS_LOCAL + strconv.FormatInt(evento.IdLocal, 10)
+      }else{
+        return dbError.Error()
+      }
+    }
+  }
+
+  // Comprobamos si existe el organizador
+  var organizador Usuario
+  organizador.Id = evento.IdOrganizador
+
+  dbError := Db.Conn.Select(&organizador)
+  if dbError != nil{
+    if dbError == pg.ErrNoRows{
+      return NO_HAY_ORGANIZADOR + strconv.FormatInt(evento.IdOrganizador, 10)
+    }else{
+      return dbError.Error()
+    }
+  }
+
+  // Creamos el evento
+  dbError = Db.Conn.Insert(evento)
 	if dbError != nil {
     mensajeError = dbError.Error()
     return mensajeError
@@ -142,11 +171,36 @@ func (evento *Evento) ById() (string){
 
   if dbError != nil{
     if dbError == pg.ErrNoRows{
-      mensajeError = "No hay datos para el evento " + strconv.FormatInt(evento.Id, 10)
+      mensajeError = NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
     }else{
       mensajeError = dbError.Error()
     }
   }
 
   return mensajeError
+}
+
+
+//-----------------------------------------------------------------------------
+// Búsqueda de los eventos a los que está asociado un usuario
+//
+//-----------------------------------------------------------------------------
+func (evento *Evento) ByUsuario(idUsuario int64) ([]Evento, string){
+
+  var eventos []Evento
+
+  Db.Open()
+  defer Db.Close()
+
+  query := "SELECT eventos.* FROM eventos, usuario_eventos WHERE id = id_evento and id_usuario = " + strconv.Itoa(int(idUsuario))
+  _, dbError := Db.Conn.Query(&eventos, query)
+
+  if dbError != nil{
+    return nil, dbError.Error()
+  }
+
+/*  if eventos == nil{
+    return nil, NO_HAY_EVENTOS_USUARIO + strconv.Itoa(int(idUsuario))
+  }*/
+  return eventos, ""
 }

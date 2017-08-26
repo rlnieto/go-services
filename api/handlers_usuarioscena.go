@@ -10,7 +10,6 @@ import(
   Persistencia "rlnieto.org/go-services/persistencia"
 )
 
-
 /*------------------------------------------------------------------------------
  Alta de usuarios en un evento
 
@@ -31,19 +30,18 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   // Campos obligatorios: fecha, hora, id organizador
   if r.FormValue("idusuario") == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Faltan los ids de los usuarios"
+    error.Msg = ERROR_NO_HAY_IDS_USUARIOS
     statusCode, response = error.Dispatch()
   }
 
   if idEvento == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el id de la evento"
+    error.Msg = ERROR_NO_HAY_ID_EVENTO
     statusCode, response = error.Dispatch()
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -60,10 +58,29 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   dbError := evento.ById()
   if dbError != ""{
     error.ErrorCode = Error.NOT_FOUND
-    error.Msg = "No se encontró el evento con id " + idEvento
+    error.Msg = ERROR_EVENTO_NO_ENCONTRADO + idEvento
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    http.Error(w, response, statusCode)
+    return
   }
+
+  // Comprobamos que existan los usuarios
+  var usuario Persistencia.Usuario
+
+  for _, id := range(idUsuarios){
+    usuario.Id, _ = strconv.ParseInt(id, 10, 32);
+    dbError = usuario.ById()
+
+    if dbError != ""{
+      error.ErrorCode = Error.NOT_FOUND
+      error.Msg = dbError
+      statusCode, response = error.Dispatch()
+      http.Error(w, response, statusCode)
+      return
+    }
+    fmt.Println(usuario.Nick)
+  }
+
 
   // Damos de alta los usuarios
   if dbError == ""{
@@ -74,7 +91,8 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
       error.ErrorCode = Error.DB_ERROR
       error.Msg = dbError
       statusCode, response = error.Dispatch()
-      http.Error(w, http.StatusText(int(statusCode)), statusCode)
+      http.Error(w, response, statusCode)
+      return
     }
   }
 
@@ -101,19 +119,18 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   if idEvento == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el id"
+    error.Msg = ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if idUsuarios == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Faltan los ids de los usuarios"
+    error.Msg = ERROR_NO_HAY_IDS_USUARIOS
     statusCode, response = error.Dispatch()
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -126,8 +143,7 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -135,10 +151,9 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
   if numUsuarios == 0{
     error.ErrorCode = Error.NOT_FOUND
-    error.Msg = "No hay usuarios para el evento con id " + idEvento
+    error.Msg = ERROR_NO_HAY_USUARIOS_EVENTO + idEvento
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -149,7 +164,8 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    http.Error(w, response, statusCode)
+    return
   }
 
   fmt.Fprintf(w, response)

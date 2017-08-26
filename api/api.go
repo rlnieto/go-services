@@ -2,7 +2,6 @@ package api
 
 import(
   "database/sql"
-  _ "github.com/go-sql-driver/mysql"
   "github.com/gorilla/mux"
   "net/http"
   "fmt"
@@ -30,6 +29,7 @@ func (api *ApiServer) Start(){
   routes.HandleFunc("/api/eventos", AltaEvento).Methods("POST")
   routes.HandleFunc("/api/eventos", ModificarEvento).Methods("PUT")
   routes.HandleFunc("/api/eventos", BorrarEvento).Methods("DELETE")
+  routes.HandleFunc("/api/eventosusuario", EventosUsuario).Methods("GET")
   routes.HandleFunc("/api/usuariosevento", AltaUsuariosEvento).Methods("POST")
   routes.HandleFunc("/api/usuariosevento", BajaUsuariosEvento).Methods("DELETE")
 

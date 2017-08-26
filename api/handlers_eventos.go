@@ -9,7 +9,6 @@ import(
   Persistencia "rlnieto.org/go-services/persistencia"
 )
 
-
 /*------------------------------------------------------------------------------
  Alta de un evento
 
@@ -35,31 +34,30 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
   // Campos obligatorios: fecha, hora, id organizador
   if fecha == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta la fecha"
+    error.Msg = ERROR_NO_HAY_FECHA
     statusCode, response = error.Dispatch()
   }
 
   if hora == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta la hora"
+    error.Msg = ERROR_NO_HAY_HORA
     statusCode, response = error.Dispatch()
   }
 
   if idOrganizador == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el organizador"
+    error.Msg = ERROR_NO_HAY_ORGANIZADOR
     statusCode, response = error.Dispatch()
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
   // Comprobamos los campos optativos => los numéricos vienen con un blanco
   if motivo == ""{
-    motivo = "Porque hoy es hoy"
+    motivo = MOTIVO_EVENTO_POR_DEFECTO
   }
   if idLocal == ""{
     idLocal = "0"
@@ -72,7 +70,17 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
   var evento Persistencia.Evento
   evento.Fecha = fecha
   evento.Hora = hora
-  evento.IdLocal, _ = strconv.ParseInt(idLocal, 10, 32)
+
+  idLocalConvertido, errorConversion := strconv.ParseInt(idLocal, 10, 32)
+  if errorConversion != nil{
+    error.ErrorCode = Error.DB_ERROR
+    error.Msg = ERROR_FORMATO_ID_LOCAL
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  evento.IdLocal = idLocalConvertido
   evento.Motivo = motivo
   evento.Menu = menu
   evento.PrecioEstimado, _ = strconv.Atoi(precioEstimado)
@@ -83,7 +91,8 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    http.Error(w, response, statusCode)
+    return
   }
 
   fmt.Fprintf(w, response)
@@ -118,25 +127,25 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
   // Campos obligatorios: fecha, hora, id organizador
   if idEvento == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el id"
+    error.Msg = ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if fecha == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta la fecha"
+    error.Msg = ERROR_NO_HAY_FECHA
     statusCode, response = error.Dispatch()
   }
 
   if hora == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta la hora"
+    error.Msg = ERROR_NO_HAY_HORA
     statusCode, response = error.Dispatch()
   }
 
   if idOrganizador == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el organizador"
+    error.Msg = ERROR_NO_HAY_ORGANIZADOR
     statusCode, response = error.Dispatch()
   }
 
@@ -151,8 +160,7 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -171,7 +179,8 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    http.Error(w, response, statusCode)
+    return
   }
 
   fmt.Fprintf(w, response)
@@ -196,13 +205,12 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   if idEvento == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el id"
+    error.Msg = ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -214,7 +222,8 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
+    http.Error(w, response, statusCode)
+    return
   }
 
   fmt.Fprintf(w, response)
@@ -222,7 +231,7 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
 
 
 /*------------------------------------------------------------------------------
- Consulta de un evento con sus usuarios por clave
+ Consulta de un evento con sus usuarios por clave de evento
 
 ------------------------------------------------------------------------------*/
 func ConsultarEvento(w http.ResponseWriter, r *http.Request){
@@ -239,13 +248,12 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   if idEvento == ""{
     error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = "Falta el id"
+    error.Msg = ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if error.ErrorCode !=0{
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -268,8 +276,7 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -281,8 +288,7 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
     error.ErrorCode = Error.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
-    http.Error(w, http.StatusText(int(statusCode)), statusCode)
-    fmt.Fprintf(w, response)
+    http.Error(w, response, statusCode)
     return
   }
 
@@ -292,4 +298,115 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
   output, _ := json.Marshal(salida)
   fmt.Fprintf(w, string(output))
   fmt.Fprintf(w, response)
+}
+
+
+
+
+/*------------------------------------------------------------------------------
+ Consulta de los eventos de un usuario
+
+------------------------------------------------------------------------------*/
+func EventosUsuario(w http.ResponseWriter, r *http.Request){
+  w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
+
+  type DatosSalida struct{
+    IdEvento int64
+    Fecha string
+    Hora string
+    Local string
+    Organizador string
+    Motivo string
+  }
+
+  var error = Error.ErrorMsg{}
+
+  // Inicializamos la respuesta asumiendo que todo fue ok
+  response := error.OkResponse()
+  var statusCode int
+
+  idUsuario := r.FormValue("idusuario")
+
+  // Validaciones
+  if idUsuario == ""{
+    error.ErrorCode = Error.PARAMETRO_INCORRECTO
+    error.Msg = ERROR_NO_HAY_ID
+    statusCode, response = error.Dispatch()
+  }
+
+  if error.ErrorCode !=0{
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  // Buscamos los eventos
+  var salida []Persistencia.Evento
+  var evento Persistencia.Evento
+
+  usuarioInt, _ := strconv.ParseInt(idUsuario, 10, 64)
+
+  salida, dbError := evento.ByUsuario(usuarioInt)
+  if dbError != ""{
+    error.ErrorCode = Error.DB_ERROR
+    error.Msg = dbError
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  // Comprobamos si había datos
+  if len(salida) == 0{
+    error.ErrorCode = Error.DB_ERROR
+    error.Msg = NO_HAY_EVENTOS_USUARIO + idUsuario
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  datosSalida := []DatosSalida{}
+  var item DatosSalida
+
+  for _, evento := range salida{
+    item.IdEvento = evento.Id
+    item.Fecha = evento.Fecha
+    item.Hora = evento.Hora
+
+    // Recuperamos el nombre del local
+    var local Persistencia.Restaurante
+    local.Id = evento.IdLocal
+    dbError = local.ById()
+    if dbError != ""{
+      error.ErrorCode = Error.DB_ERROR
+      error.Msg = dbError
+      statusCode, response = error.Dispatch()
+      http.Error(w, response, statusCode)
+      return
+    }
+    if local.Nombre == "" {
+      item.Local = DESCRIPCION_LOCAL_POR_DEFECTO
+    }else{
+      item.Local = local.Nombre
+    }
+
+
+    // Recuperamos el nombre del organizador
+    var usuario Persistencia.Usuario
+    usuario.Id = evento.IdOrganizador
+    dbError = usuario.ById()
+    if dbError != ""{
+      error.ErrorCode = Error.DB_ERROR
+      error.Msg = dbError
+      statusCode, response = error.Dispatch()
+      http.Error(w, response, statusCode)
+      return
+    }
+    item.Organizador = usuario.Nick
+
+    item.Motivo = evento.Motivo
+
+    datosSalida = append(datosSalida, item)
+  }
+
+  output, _ := json.Marshal(datosSalida)
+  fmt.Fprintf(w, string(output))
 }

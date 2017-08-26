@@ -2,7 +2,7 @@ package persistencia
 
 import(
   "github.com/go-pg/pg"
-  Config "rlnieto.org/pruebas/postgres/config"
+  Config "rlnieto.org/go-services/config"
 )
 
 type Database struct{

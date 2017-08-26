@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!-- Declaring the ng-app -->
+<html lang="es" ng-app="eventos">
+
+<style>
+  .selected {background-color: #FAFAD2;}
+</style>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Parking</title>
+  <link rel="stylesheet" type="text/css" href="css/app.css">
+  <!--link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"-->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+</head>
+
+<!-- Attaching the view to the parkingCtrl -->
+<body ng-controller="parkingCtrl">
+  <h3>{{appTitle}}</h3>
+
+  <alert
+    ng-show="showAlert"
+    topic="alertTopic"
+    description="descriptionTopic"
+    close="closeAlert()">
+  </alert>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-12-lg">
+        <h1>API Interface</h1>
+
+        <div id="api-messages"></div>
+
+        <!-------------------------------------------------------------------->
+        <!-- Pestañas                                                       -->
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#activos" data-toggle="tab">Activos</a></li>
+          <li><a href="#pasados" data-toggle="tab">Pasados</a></li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- Activos -->
+          <div class="tab-pane fade in active" id="activos">
+
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="card">
+                  <div class="card-block">
+                    <h3 class="card-title">Título</h3>
+                    <p class="card-text">Descripción</p>
+                    <a href="#" class="btn btn-primary">Botón</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+
+          <!-- Pasados -->
+          <div class="tab-pane fade" id="pasados">
+            Nothing to see yet!
+          </div>
+        </div>
+        <!-------------------------------------------------------------------->
+
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+  <alert ng-show="carForm.plateField.$dirty && carForm.plateField.$invalid" topic="alertTopic">
+    The plate is invalid!
+  </alert>
+
+  <span ng-show="carForm.plateField.$error.required">You must inform the plate of the car!</span>
+  <span ng-show="carForm.plateField.$error.minlength">The plate must have at least 6 characters!</span>
+  <span ng-show="carForm.plateField.$error.maxlength">The plate must have at most 10 characters!</span>
+  <span ng-show="carForm.plateField.$error.pattern">The plate must start with non-digits, followed by 4 to 7 numbers!</span>
+
+  <accordion>
+    <accordion-item title="MMM-8790">
+      White - 10/10/2002 10:00
+    </accordion-item>
+    <accordion-item title="ABC-9954">
+      Black - 10/10/2002 10:36
+    </accordion-item>
+    <accordion-item title="XYZ-9768">
+      Blue - 10/10/2002 11:10
+    </accordion-item>
+  </accordion>
+
+
+  <div ng-show="cars.length > 0">
+    <input type="text" ng-model="criteria" placeholder="What are you looking for?"/>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>
+            <a href="" ng-click="field='plate'; order=!order">Plate</a>
+          </th>
+          <th>
+            <a href="" ng-click="field='color'; order=!order">Color</a>
+          </th>
+          <th>
+            <a href="" ng-click="field='entrance'; order=!order">Entrance</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Iterating over the cars -->
+        <tr ng-class="{selected: car.selected}" ng-repeat="car in cars | filter:criteria | orderBy:field:order">
+
+        <!-- Showing the car's plate -->
+        <td><input type="checkbox" ng-model="car.selected"/></td>
+        <td>{{car.plate}}</td>
+        <td ng-style="{color: car.color}">{{car.color}}</td>
+        <td>{{car.entrance | date:'MMMM dd/MM/yyyy HH:mm:ss'}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div ng-hide="cars.length > 0"> The parking is empty </div>
+
+  <!-- Binding the car object, with plate, to the scope -->
+  <form name="carForm">
+    <input
+      type="text"
+      name="plateField"
+      placeholder="Type the plate"
+      ng-model="car.plate"
+      ng-required="true"
+      ng-minlength="6"
+      ng-maxlength="10"
+      ng-pattern="/[A-Z]{3}[0-9]{3,7}/"
+    />
+    <select
+      ng-model="car.color"
+      ng-options="color for color in colors"
+      ng-required="true"
+    >
+        Pick a color
+    </select>
+  </form>
+
+    <!-- Binding the park function to the click event -->
+    <!--button ng-click="park(car)" ng-disabled="!car.plate || !car.color">Park</button-->
+    <button
+      ng-click="park(car)"
+      ng-disabled="carForm.$invalid">
+        Park
+    </button>
+
+    <ul>
+      <li ng-repeat="car in cars">Car {{ticket}}</li>
+    </ul>
+
+    <button
+      ng-click="calculateTicket(car)">
+        Calcular
+    </button>
+
+
+
+    <script src="js/node_modules/angular/angular.js"></script>
+    <script src="js/node_modules/angular-animate/angular-animate.js"></script>
+    <script src="js/node_modules/angular-i18n/angular-locale_es-es.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/directives.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/constants.js"></script>
+
+    <!--script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script-->
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+</body>
+</html>

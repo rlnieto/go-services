@@ -1,14 +1,13 @@
 package persistencia
 
 import(
-  "fmt"
   "strings"
   "strconv"
 )
 
 type UsuarioEvento struct{
-  IdUsuario int64
-  IdEvento int64
+  IdUsuario int64  `sql:",notnull"`
+  IdEvento int64  `sql:",notnull"`
   Confirmado string
 }
 
@@ -41,9 +40,6 @@ func (dummy *UsuarioEvento)AltaEnEvento(idEvento int64, idUsuarios []string)(str
   if dbError != nil{
     return dbError.Error()
   }
-
-fmt.Println(sql)
-fmt.Println(idEvento)
 
   _, dbError = tx.Stmt(query).Exec(idEvento)
   if dbError != nil{

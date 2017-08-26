@@ -1,2 +1,2 @@
 // Creating the module called parking
-var parking = angular.module("parking", ["ngAnimate"]);
+var eventos = angular.module("eventos", ["ngAnimate", "ngResource"]);
