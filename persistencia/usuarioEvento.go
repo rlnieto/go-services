@@ -3,12 +3,13 @@ package persistencia
 import(
   "strings"
   "strconv"
+  "github.com/go-pg/pg"
 )
 
 type UsuarioEvento struct{
-  IdUsuario int64  `sql:",notnull"`
-  IdEvento int64  `sql:",notnull"`
-  Confirmado string
+  IdUsuario int64  `sql:",notnull,pk"`
+  IdEvento int64  `sql:",notnull,pk"`
+  Confirmado string `sql:",notnull"`
 }
 
 
@@ -127,11 +128,50 @@ func (usuario *UsuarioEvento)NumeroUsuariosEvento(idEvento int64) (int, string){
   Db.Open()
   defer Db.Close()
 
-  //query := "SELECT count(*) FROM usuarios_evento WHERE idevento= " + strconv.Itoa(int(idEvento))
   usuarios, dbError := Db.Conn.Model(usuario).Count()
   if dbError != nil{
     return 0, dbError.Error()
   }
 
   return usuarios, ""
+}
+
+//-----------------------------------------------------------------------------
+// Búsqueda por clave
+//
+//-----------------------------------------------------------------------------
+func (usuario *UsuarioEvento)ById() (string){
+
+  Db.Open()
+  defer Db.Close()
+
+  dbError := Db.Conn.Select(usuario)
+  if dbError != nil{
+    if dbError == pg.ErrNoRows{
+      usuario.IdEvento = 0
+      usuario.IdUsuario = 0
+      return ""
+    }else{
+      return dbError.Error()
+    }
+  }
+
+  return ""
+}
+
+//-----------------------------------------------------------------------------
+// Actualiza una fila de la tabla
+//
+//-----------------------------------------------------------------------------
+func (usuario *UsuarioEvento)Actualizar() (string){
+
+  Db.Open()
+  defer Db.Close()
+
+  dbError := Db.Conn.Update(usuario)
+  if dbError != nil{
+    return dbError.Error()
+  }
+
+  return ""
 }

@@ -5,7 +5,7 @@ import(
   "fmt"
   "strconv"
   "encoding/json"
-  Error "rlnieto.org/go-services/error"
+  Mensaje "rlnieto.org/go-services/mensajes"
   Persistencia "rlnieto.org/go-services/persistencia"
 )
 
@@ -14,9 +14,8 @@ import(
 
 ------------------------------------------------------------------------------*/
 func AltaEvento(w http.ResponseWriter, r *http.Request){
-  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -33,20 +32,20 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   // Campos obligatorios: fecha, hora, id organizador
   if fecha == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_FECHA
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_FECHA
     statusCode, response = error.Dispatch()
   }
 
   if hora == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_HORA
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_HORA
     statusCode, response = error.Dispatch()
   }
 
   if idOrganizador == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ORGANIZADOR
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ORGANIZADOR
     statusCode, response = error.Dispatch()
   }
 
@@ -57,7 +56,7 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
 
   // Comprobamos los campos optativos => los numéricos vienen con un blanco
   if motivo == ""{
-    motivo = MOTIVO_EVENTO_POR_DEFECTO
+    motivo = Mensaje.MOTIVO_EVENTO_POR_DEFECTO
   }
   if idLocal == ""{
     idLocal = "0"
@@ -73,8 +72,8 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
 
   idLocalConvertido, errorConversion := strconv.ParseInt(idLocal, 10, 32)
   if errorConversion != nil{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = ERROR_FORMATO_ID_LOCAL
+    error.ErrorCode = Mensaje.DB_ERROR
+    error.Msg = Mensaje.ERROR_FORMATO_ID_LOCAL
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
     return
@@ -88,7 +87,7 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
 
   dbError := evento.Alta()
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -106,9 +105,8 @@ func AltaEvento(w http.ResponseWriter, r *http.Request){
 
 ------------------------------------------------------------------------------*/
 func ModificarEvento(w http.ResponseWriter, r *http.Request){
-  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -126,26 +124,26 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   // Campos obligatorios: fecha, hora, id organizador
   if idEvento == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if fecha == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_FECHA
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_FECHA
     statusCode, response = error.Dispatch()
   }
 
   if hora == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_HORA
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_HORA
     statusCode, response = error.Dispatch()
   }
 
   if idOrganizador == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ORGANIZADOR
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ORGANIZADOR
     statusCode, response = error.Dispatch()
   }
 
@@ -176,7 +174,7 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
 
   dbError := evento.Actualizar()
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -192,9 +190,8 @@ func ModificarEvento(w http.ResponseWriter, r *http.Request){
 
 ------------------------------------------------------------------------------*/
 func BorrarEvento(w http.ResponseWriter, r *http.Request){
-  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -204,8 +201,8 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
 
   // Validaciones
   if idEvento == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
@@ -219,7 +216,7 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
 
   dbError := evento.Borrar()
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -237,7 +234,7 @@ func BorrarEvento(w http.ResponseWriter, r *http.Request){
 func ConsultarEvento(w http.ResponseWriter, r *http.Request){
   //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -247,8 +244,8 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
 
   // Validaciones
   if idEvento == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
@@ -273,7 +270,7 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
 
   dbError := evento.ById()
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -285,7 +282,7 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
 
   usuarios, dbError := usuario.ByEvento(evento.Id)
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -308,7 +305,7 @@ func ConsultarEvento(w http.ResponseWriter, r *http.Request){
 
 ------------------------------------------------------------------------------*/
 func EventosUsuario(w http.ResponseWriter, r *http.Request){
-  w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
+  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
   type DatosSalida struct{
     IdEvento int64
@@ -317,9 +314,10 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
     Local string
     Organizador string
     Motivo string
+    Confirmado string
   }
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -329,8 +327,8 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
 
   // Validaciones
   if idUsuario == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
@@ -338,6 +336,10 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
     http.Error(w, response, statusCode)
     return
   }
+
+  fmt.Println("Recuperando los eventos del usuario...")
+  fmt.Println(idUsuario)
+
 
   // Buscamos los eventos
   var salida []Persistencia.Evento
@@ -347,7 +349,7 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
 
   salida, dbError := evento.ByUsuario(usuarioInt)
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -356,8 +358,8 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
 
   // Comprobamos si había datos
   if len(salida) == 0{
-    error.ErrorCode = Error.DB_ERROR
-    error.Msg = NO_HAY_EVENTOS_USUARIO + idUsuario
+    error.ErrorCode = Mensaje.DB_ERROR
+    error.Msg = Mensaje.NO_HAY_EVENTOS_USUARIO + idUsuario
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
     return
@@ -376,14 +378,14 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
     local.Id = evento.IdLocal
     dbError = local.ById()
     if dbError != ""{
-      error.ErrorCode = Error.DB_ERROR
+      error.ErrorCode = Mensaje.DB_ERROR
       error.Msg = dbError
       statusCode, response = error.Dispatch()
       http.Error(w, response, statusCode)
       return
     }
     if local.Nombre == "" {
-      item.Local = DESCRIPCION_LOCAL_POR_DEFECTO
+      item.Local = Mensaje.DESCRIPCION_LOCAL_POR_DEFECTO
     }else{
       item.Local = local.Nombre
     }
@@ -394,7 +396,7 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
     usuario.Id = evento.IdOrganizador
     dbError = usuario.ById()
     if dbError != ""{
-      error.ErrorCode = Error.DB_ERROR
+      error.ErrorCode = Mensaje.DB_ERROR
       error.Msg = dbError
       statusCode, response = error.Dispatch()
       http.Error(w, response, statusCode)
@@ -403,6 +405,20 @@ func EventosUsuario(w http.ResponseWriter, r *http.Request){
     item.Organizador = usuario.Nick
 
     item.Motivo = evento.Motivo
+
+    // Y comprobamos si confirmó o no la asistencia
+    var usuarioEvento Persistencia.UsuarioEvento
+    usuarioEvento.IdUsuario = usuarioInt
+    usuarioEvento.IdEvento = evento.Id
+    dbError = usuarioEvento.ById()
+    if dbError != ""{
+      error.ErrorCode = Mensaje.DB_ERROR
+      error.Msg = dbError
+      statusCode, response = error.Dispatch()
+      http.Error(w, response, statusCode)
+      return
+    }
+    item.Confirmado = usuarioEvento.Confirmado
 
     datosSalida = append(datosSalida, item)
   }

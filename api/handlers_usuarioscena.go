@@ -6,7 +6,7 @@ import(
   "strings"
   "strconv"
   "log"
-  Error "rlnieto.org/go-services/error"
+  Mensaje "rlnieto.org/go-services/mensajes"
   Persistencia "rlnieto.org/go-services/persistencia"
 )
 
@@ -15,8 +15,8 @@ import(
 
 ------------------------------------------------------------------------------*/
 func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
-  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
-  var error = Error.ErrorMsg{}
+
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -29,14 +29,14 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   // Validaciones
   // Campos obligatorios: fecha, hora, id organizador
   if r.FormValue("idusuario") == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_IDS_USUARIOS
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_IDS_USUARIOS
     statusCode, response = error.Dispatch()
   }
 
   if idEvento == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID_EVENTO
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID_EVENTO
     statusCode, response = error.Dispatch()
   }
 
@@ -57,8 +57,8 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
   dbError := evento.ById()
   if dbError != ""{
-    error.ErrorCode = Error.NOT_FOUND
-    error.Msg = ERROR_EVENTO_NO_ENCONTRADO + idEvento
+    error.ErrorCode = Mensaje.NOT_FOUND
+    error.Msg = Mensaje.ERROR_EVENTO_NO_ENCONTRADO + idEvento
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
     return
@@ -72,7 +72,7 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
     dbError = usuario.ById()
 
     if dbError != ""{
-      error.ErrorCode = Error.NOT_FOUND
+      error.ErrorCode = Mensaje.NOT_FOUND
       error.Msg = dbError
       statusCode, response = error.Dispatch()
       http.Error(w, response, statusCode)
@@ -88,7 +88,7 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
     dbError = usuario.AltaEnEvento(idEventoInt, idUsuarios)
     if dbError != ""{
-      error.ErrorCode = Error.DB_ERROR
+      error.ErrorCode = Mensaje.DB_ERROR
       error.Msg = dbError
       statusCode, response = error.Dispatch()
       http.Error(w, response, statusCode)
@@ -105,9 +105,8 @@ func AltaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
 ------------------------------------------------------------------------------*/
 func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
-  //w.Header().Set("Access-Control-Allow-Origin","http://localhost:90")
 
-  var error = Error.ErrorMsg{}
+  var error = Mensaje.ErrorMsg{}
 
   // Inicializamos la respuesta asumiendo que todo fue ok
   response := error.OkResponse()
@@ -118,14 +117,14 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
   // Validaciones
   if idEvento == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_ID
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID
     statusCode, response = error.Dispatch()
   }
 
   if idUsuarios == ""{
-    error.ErrorCode = Error.PARAMETRO_INCORRECTO
-    error.Msg = ERROR_NO_HAY_IDS_USUARIOS
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_IDS_USUARIOS
     statusCode, response = error.Dispatch()
   }
 
@@ -140,7 +139,7 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
 
   numUsuarios, dbError := usuario.NumeroUsuariosEvento(idEventoInt)
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
@@ -150,8 +149,8 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   log.Println(numUsuarios)
 
   if numUsuarios == 0{
-    error.ErrorCode = Error.NOT_FOUND
-    error.Msg = ERROR_NO_HAY_USUARIOS_EVENTO + idEvento
+    error.ErrorCode = Mensaje.NOT_FOUND
+    error.Msg = Mensaje.ERROR_NO_HAY_USUARIOS_EVENTO + idEvento
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)
     return
@@ -161,7 +160,91 @@ func BajaUsuariosEvento(w http.ResponseWriter, r *http.Request){
   dbError = usuario.BajaEnEvento(idEventoInt, idUsuarios)
 
   if dbError != ""{
-    error.ErrorCode = Error.DB_ERROR
+    error.ErrorCode = Mensaje.DB_ERROR
+    error.Msg = dbError
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  fmt.Fprintf(w, response)
+}
+
+
+/*------------------------------------------------------------------------------
+ Cambia el estado de la asistencia de un usuario a un evento
+
+------------------------------------------------------------------------------*/
+func ModificarUsuarioEvento(w http.ResponseWriter, r *http.Request){
+
+  var error = Mensaje.ErrorMsg{}
+
+  // Inicializamos la respuesta asumiendo que todo fue ok
+  response := error.OkResponse()
+  var statusCode int
+
+  idEvento := r.FormValue("idevento")
+  idUsuario := r.FormValue("idusuario")
+  confirmado := r.FormValue("confirmado")
+
+  // Validaciones
+  if idEvento == ""{
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID_EVENTO
+    statusCode, response = error.Dispatch()
+  }
+
+  if idUsuario == ""{
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_ID_USUARIO
+    statusCode, response = error.Dispatch()
+  }
+
+  if confirmado == "" && confirmado != "S" && confirmado != "N"{
+    error.ErrorCode = Mensaje.PARAMETRO_INCORRECTO
+    error.Msg = Mensaje.ERROR_NO_HAY_IND_ASISTENCIA
+    statusCode, response = error.Dispatch()
+  }
+
+  if error.ErrorCode !=0{
+    http.Error(w, response, statusCode)
+    return
+  }
+
+
+  // Comprobamos que exista entrada en la tabla para ese usuario y evento
+  var usuario Persistencia.UsuarioEvento
+
+  idUsuarioInt, _ := strconv.ParseInt(idUsuario, 10, 32)
+  idEventoInt, _ := strconv.ParseInt(idEvento, 10, 32)
+
+  usuario.IdUsuario = idUsuarioInt
+  usuario.IdEvento = idEventoInt
+
+  dbError := usuario.ById()
+  if dbError != ""{
+    error.ErrorCode = Mensaje.DB_ERROR
+    error.Msg = dbError
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  // Si no había datos tambien salimos con error
+  if(usuario.IdUsuario == 0){
+    error.ErrorCode = Mensaje.NOT_FOUND
+    error.Msg = Mensaje.ERROR_NO_HAY_DATOS_GENERICO
+    statusCode, response = error.Dispatch()
+    http.Error(w, response, statusCode)
+    return
+  }
+
+  // Modificamos el indicador con el valor recibido
+  usuario.Confirmado = confirmado
+  dbError = usuario.Actualizar()
+
+  if dbError != ""{
+    error.ErrorCode = Mensaje.DB_ERROR
     error.Msg = dbError
     statusCode, response = error.Dispatch()
     http.Error(w, response, statusCode)

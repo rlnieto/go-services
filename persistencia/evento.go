@@ -4,6 +4,7 @@ import(
   "fmt"
   "strconv"
   "github.com/go-pg/pg"
+  Mensaje "rlnieto.org/go-services/mensajes"
 )
 
 type Evento struct{
@@ -57,7 +58,7 @@ func (evento *Evento) Borrar() (string){
   // Si no existía el evento salimos con error
   if res.RowsAffected() == 0{
     tx.Rollback()
-    return NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
+    return Mensaje.NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
   }
 
 
@@ -96,7 +97,7 @@ func (evento *Evento) Actualizar() (string){
   dbError := Db.Conn.Update(evento)
 	if dbError != nil {
     if dbError == pg.ErrNoRows{
-      mensajeError = NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
+      mensajeError = Mensaje.NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
     }else{
       mensajeError = dbError.Error()
     }
@@ -124,7 +125,7 @@ func (evento *Evento) Alta() (string){
     dbError := Db.Conn.Select(&local)
     if dbError != nil{
       if dbError == pg.ErrNoRows{
-        return NO_HAY_DATOS_LOCAL + strconv.FormatInt(evento.IdLocal, 10)
+        return Mensaje.NO_HAY_DATOS_LOCAL + strconv.FormatInt(evento.IdLocal, 10)
       }else{
         return dbError.Error()
       }
@@ -138,7 +139,7 @@ func (evento *Evento) Alta() (string){
   dbError := Db.Conn.Select(&organizador)
   if dbError != nil{
     if dbError == pg.ErrNoRows{
-      return NO_HAY_ORGANIZADOR + strconv.FormatInt(evento.IdOrganizador, 10)
+      return Mensaje.NO_HAY_ORGANIZADOR + strconv.FormatInt(evento.IdOrganizador, 10)
     }else{
       return dbError.Error()
     }
@@ -171,7 +172,7 @@ func (evento *Evento) ById() (string){
 
   if dbError != nil{
     if dbError == pg.ErrNoRows{
-      mensajeError = NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
+      mensajeError = Mensaje.NO_HAY_DATOS_EVENTO + strconv.FormatInt(evento.Id, 10)
     }else{
       mensajeError = dbError.Error()
     }

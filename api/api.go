@@ -2,6 +2,7 @@ package api
 
 import(
   "database/sql"
+  "github.com/gorilla/handlers"
   "github.com/gorilla/mux"
   "net/http"
   "fmt"
@@ -32,21 +33,16 @@ func (api *ApiServer) Start(){
   routes.HandleFunc("/api/eventosusuario", EventosUsuario).Methods("GET")
   routes.HandleFunc("/api/usuariosevento", AltaUsuariosEvento).Methods("POST")
   routes.HandleFunc("/api/usuariosevento", BajaUsuariosEvento).Methods("DELETE")
+  routes.HandleFunc("/api/usuariosevento", ModificarUsuarioEvento).Methods("PUT")
+
+  // Configuramos CORS
+  cabecerasPermitidas := handlers.AllowedHeaders([]string{"Content-Type"})
+  origenesPermitidos := handlers.AllowedOrigins([]string{"http://localhost:90"})
+  metodosPermitidos := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 
   fmt.Println("Listening on port 8080...")
-/*
-  routes.HandleFunc("/api/users", UsersRetrieve).Methods("GET")
-  routes.HandleFunc("/api/users/{id:[0-9]+}", UserRetrieve).Methods("GET")
-  routes.HandleFunc("/api/users/{id:[0-9]+}", UsersUpdate).Methods("PUT")
-  routes.HandleFunc("/api/users", UsersInfo).Methods("OPTIONS")
-
-  routes.HandleFunc("/authorize", ApplicationAuthorize).Methods("POST")
-  routes.HandleFunc("/authorize", ApplicationAuthenticate).Methods("GET")
-
-  routes.HandleFunc("/authorize/{service:[a-z]+}", ServiceAuthorize).Methods("GET")
-  routes.HandleFunc("/connect/{service:[a-z]+}", ServiceConnect).Methods("GET")
-  routes.HandleFunc("/oauth/token", CheckCredentials).Method("POST")
-*/
   http.Handle("/", routes)
-  http.ListenAndServe(":8080", nil)
+  http.ListenAndServe(":8080", handlers.CORS(cabecerasPermitidas, origenesPermitidos, metodosPermitidos)(routes))
+  //http.ListenAndServe(":8080", nil)
+
 }

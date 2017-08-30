@@ -42,12 +42,12 @@ func altaDatos(db *pg.DB){
   ]`)
 
   var datosUsuarios = []byte(`[
-    {"nick":"pepe", "email":"pepe@gmail.com", "telefono":555102030, "fechaalta":"2017-05-30"},
-    {"nick":"perico", "email":"ppalotes@gmail.com", "telefono":555203040, "fechaalta":"2017-08-12"},
-    {"nick":"pepa", "email":"pepa@gmail.com", "telefono":555123456, "fechaalta":"2017-08-23"},
-    {"nick":"perica", "email":"perika@gmail.com", "telefono":555789012, "fechaalta":"2017-03-10"},
-    {"nick":"juan", "email":"juan@gmail.com", "telefono":555666777, "fechaalta":"2017-08-12"},
-    {"nick":"josefa", "email":"jozefa@gmail.com", "telefono":555000000, "fechaalta":"2017-08-15"}
+    {"nick":"pepe", "nombre":"pepe", "apellido1":"perez", "apellido2":"perez", "email":"pepe@gmail.com", "telefono":555102030, "fechaalta":"2017-05-30"},
+    {"nick":"perico", "nombre":"perico", "apellido1":"perez", "apellido2":"lopez", "email":"ppalotes@gmail.com", "telefono":555203040, "fechaalta":"2017-08-12"},
+    {"nick":"pepa", "nombre":"pepa", "apellido1":"ruibarbo", "apellido2":"cadillo", "email":"pepa@gmail.com", "telefono":555123456, "fechaalta":"2017-08-23"},
+    {"nick":"perica", "nombre":"perica", "apellido1":"coton", "apellido2":"taina", "email":"perika@gmail.com", "telefono":555789012, "fechaalta":"2017-03-10"},
+    {"nick":"juan", "nombre":"juan", "apellido1":"DelCorral", "apellido2":"Quilado", "email":"juan@gmail.com", "telefono":555666777, "fechaalta":"2017-08-12"},
+    {"nick":"josefa", "nombre":"josefa", "apellido1":"rodriguez", "apellido2":"tirado", "email":"jozefa@gmail.com", "telefono":555000000, "fechaalta":"2017-08-15"}
   ]`)
 
 

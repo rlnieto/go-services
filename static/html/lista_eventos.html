@@ -1,0 +1,65 @@
+<div class="container">
+  <!-- Encabezado -->
+  <div class="row">
+    <div class="col col-5">
+      <h1>API Interface</h1>
+    </div>
+    <div class="col col-7">
+      <div id="api-messages">{{mensaje}}</div>
+    </div>
+  </div>
+
+  <!-- Datos -->
+  <div class="row">
+    <div class="col-12">
+
+      <!-------------------------------------------------------------------->
+      <!-- Pestañas                                                       -->
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#activos" target="_self" role="tab">Activos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#pasados" target="_self" role="tab">Pasados</a>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Activos -->
+        <div class="tab-pane active" id="activos">
+
+          <div class="container-fluid">
+            <div class="row">
+              <div ng-show="error">{{mensajeError}}</div>
+
+                <div class="col-lg-6" ng-repeat="evento in eventos">
+                  <div class="card">
+                    <div class="card-body">
+                      <h3 class="card-title">{{evento.Fecha}}: {{evento.Motivo}}</h3>
+                      <p class="card-text">{{evento.Local}}, convoca {{evento.Organizador}}</p>
+
+                      <a href="#!detalleEvento" class="btn btn-primary">Detalles</a>
+                      <button type="button" class="btn btn-primary">
+                          <span ng-if="evento.Confirmado != 'S'" ng-click="modificarAsistencia(2, evento.IdEvento, 'S'); evento.Confirmado='S'">Confirmar</span>
+                          <span ng-if="evento.Confirmado == 'S'" ng-click="modificarAsistencia(2, evento.IdEvento, 'N'); evento.Confirmado='N'">Borrar</span>
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasados -->
+        <div class="tab-pane fade" id="pasados">
+          Nothing to see yet!
+        </div>
+      <!-------------------------------------------------------------------->
+
+      </div>
+    </div>
+
+  </div>
+</div>
